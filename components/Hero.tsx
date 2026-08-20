@@ -58,7 +58,7 @@ export default function Hero({ onOpenVideo, onExploreJourneys }: HeroProps) {
 
           {/* Action CTA Buttons */}
           <div className="flex flex-wrap items-center gap-4 mt-8 sm:mt-10">
-            {/* Primary CTA Button: EXPLORE JOURNEYS */}
+            
             <a
               href="#journeys"
               onClick={(e) => {
