@@ -1,0 +1,204 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  AGENT
+}
+
+enum PackageType {
+  LONG_DAY
+  ONE_DAY
+}
+
+enum InquiryType {
+  TRIP_PLANNER
+  CUSTOM_TOUR
+  AIRPORT_TRANSFER
+  DIRECT_INQUIRY
+}
+
+enum InquiryStatus {
+  PENDING
+  CONTACTED
+  QUOTED
+  CONFIRMED
+  CANCELLED
+}
+
+// 1. Admin Users & Staff
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(ADMIN)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedInquiries Inquiry[]
+}
+
+// 2. Tour Packages
+model Package {
+  id                 String               @id @default(cuid())
+  slug               String               @unique
+  type               PackageType          @default(LONG_DAY)
+  title              String
+  durationTag        String
+  durationNightsDays String
+  subtitle           String
+  overview           Json                 // Array of paragraphs: string[]
+  idealFor           String
+  pace               String
+  heroImage          String
+  posterImage        String?
+  isPublished        Boolean              @default(true)
+  isFeatured         Boolean              @default(false)
+  priceFrom          Float?
+  order              Int                  @default(0)
+
+  // Relations
+  routeMapStops      PackageRouteStop[]
+  highlights         PackageHighlight[]
+  itinerary          ItineraryDay[]
+  accommodation      PackageAccommodation?
+  faqs               PackageFAQ[]
+  inclusions         Json                 // Array of string: string[]
+  exclusions         Json                 // Array of string: string[]
+  whyChoose          Json?                // { title, paragraphs: [], bulletPoints: [] }
+
+  inquiries          Inquiry[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+// 3. Itinerary Days (Multi-day & Day Tours)
+model ItineraryDay {
+  id            String    @id @default(cuid())
+  packageId     String
+  dayNumber     Int
+  title         String
+  subtitle      String?
+  stopLocation  String
+  description   Json      // string[]
+  overnightStay String
+  highlights    Json?     // string[]
+  image         String
+  imageAlt      String?
+
+  package       Package   @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+// 4. Tour Route Map Stops
+model PackageRouteStop {
+  id           String   @id @default(cuid())
+  packageId    String
+  order        Int      @default(0)
+  name         String
+  night        String
+  keyHighlight String
+
+  package      Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+// 5. Tour Highlights
+model PackageHighlight {
+  id        String   @id @default(cuid())
+  packageId String
+  category  String
+  iconName  String
+  items     Json     // string[]
+
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+// 6. Tour Accommodation
+model PackageAccommodation {
+  id          String   @id @default(cuid())
+  packageId   String   @unique
+  title       String
+  description Json     // string[]
+  hotelTiers  Json     // Array of { name: string, desc: string }
+
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+// 7. Tour FAQs
+model PackageFAQ {
+  id        String   @id @default(cuid())
+  packageId String
+  question  String   @db.Text
+  answer    String   @db.Text
+  order     Int      @default(0)
+
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+// 8. Inquiries & Booking Leads
+model Inquiry {
+  id              String        @id @default(cuid())
+  type            InquiryType   @default(TRIP_PLANNER)
+  name            String
+  email           String
+  phone           String
+  country         String?
+  travelDates     String?
+  duration        String?
+  passengers      String?
+  interests       Json?         // string[]
+  specialRequests String?       @db.Text
+
+  packageId       String?
+  package         Package?      @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  status          InquiryStatus @default(PENDING)
+  internalNotes   String?       @db.Text
+  assignedToId    String?
+  assignedTo      User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([packageId])
+}
+
+// 9. Vehicles / Fleet Management
+model Vehicle {
+  id              String   @id @default(cuid())
+  type            String   // CAR, MINIVAN, LUXURY VAN, COACH
+  guests          String   // e.g. "1 – 3 Guests"
+  luggageCapacity String?  // e.g. "3 Bags"
+  description     String
+  image           String
+  ratePerKm       Float?
+  basePrice       Float?
+  isActive        Boolean  @default(true)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// 10. Site Settings (Key-Value)
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}

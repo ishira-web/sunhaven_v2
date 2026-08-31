@@ -1,0 +1,73 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { verifyToken, JWTPayload } from "./lib/auth";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production-min-32-chars"
+);
+
+async function verifyTokenMiddleware(token: string): Promise<JWTPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as JWTPayload;
+  } catch {
+    return null;
+  }
+}
+
+import { jwtVerify } from "jose";
+
+const protectedPaths = ["/admin", "/api/admin"];
+const publicPaths = ["/admin/login", "/api/admin/login", "/api/admin/logout"];
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if path is protected
+  const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
+  if (!isProtectedPath || isPublicPath) {
+    return NextResponse.next();
+  }
+
+  // Check for token in cookies
+  const token = request.cookies.get("sunhaven_admin_token")?.value;
+
+  if (!token) {
+    // Redirect to login for page routes, return 401 for API routes
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Verify token
+  const session = await verifyTokenMiddleware(token);
+  if (!session) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Add user info to headers for downstream use
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-user-id", session.userId);
+  requestHeaders.set("x-user-email", session.email);
+  requestHeaders.set("x-user-role", session.role);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+}
+
+export const config = {
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
+};
