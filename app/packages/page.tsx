@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -15,6 +15,35 @@ import { Clock, Users, Car, ArrowRight, Sparkles, Compass, CheckCircle2, ShieldC
 export default function PackagesListingPage() {
   const [activeTab, setActiveTab] = useState<"long-day" | "one-day" | "custom">("long-day");
   const [isTripPlannerOpen, setIsTripPlannerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleTabFromUrl = () => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get("tab");
+        if (tab === "long-day" || tab === "one-day" || tab === "custom") {
+          setActiveTab(tab);
+        } else if (window.location.hash === "#one-day") {
+          setActiveTab("one-day");
+        } else if (window.location.hash === "#custom") {
+          setActiveTab("custom");
+        }
+      }
+    };
+
+    handleTabFromUrl();
+    window.addEventListener("popstate", handleTabFromUrl);
+    return () => window.removeEventListener("popstate", handleTabFromUrl);
+  }, []);
+
+  const handleTabChange = (tab: "long-day" | "one-day" | "custom") => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#faf6f0] text-slate-800 flex flex-col selection:bg-[#cca45b] selection:text-[#07160f]">
@@ -52,7 +81,7 @@ export default function PackagesListingPage() {
           {/* 3 Package Types Tab Switcher */}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-10">
             <button
-              onClick={() => setActiveTab("long-day")}
+              onClick={() => handleTabChange("long-day")}
               className={`px-6 py-3 rounded-xl text-xs sm:text-[13px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                 activeTab === "long-day"
                   ? "bg-[#cca45b] text-[#07160f] shadow-[0_4px_16px_rgba(204,164,91,0.4)]"
@@ -62,7 +91,7 @@ export default function PackagesListingPage() {
               Long Day Packages (Multi-Day)
             </button>
             <button
-              onClick={() => setActiveTab("one-day")}
+              onClick={() => handleTabChange("one-day")}
               className={`px-6 py-3 rounded-xl text-xs sm:text-[13px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                 activeTab === "one-day"
                   ? "bg-[#cca45b] text-[#07160f] shadow-[0_4px_16px_rgba(204,164,91,0.4)]"
@@ -72,7 +101,7 @@ export default function PackagesListingPage() {
               One Day Excursions
             </button>
             <button
-              onClick={() => setActiveTab("custom")}
+              onClick={() => handleTabChange("custom")}
               className={`px-6 py-3 rounded-xl text-xs sm:text-[13px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                 activeTab === "custom"
                   ? "bg-[#cca45b] text-[#07160f] shadow-[0_4px_16px_rgba(204,164,91,0.4)]"

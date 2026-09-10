@@ -23,9 +23,30 @@ export default function CustomTourRequestBanner({
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+
+    try {
+      await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "CUSTOM_TOUR",
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          travelDates: formData.travelDates || "Flexible",
+          passengers: formData.guests,
+          hotelCategory: [formData.hotelCategory],
+          mealPlan: [formData.mealPlan],
+          specialRequests: `Tour Reference: ${packageTitle}. Notes: ${formData.specialWishes || "None"}`,
+        }),
+      });
+    } catch (err) {
+      console.error("Custom tour inquiry error:", err);
+    }
+
     const message = `*Custom Tour & Quote Request - SunHaven Lanka*%0A%0A*Tour Reference:* ${packageTitle}%0A*Name:* ${formData.name}%0A*Phone/WhatsApp:* ${formData.phone}%0A*Email:* ${formData.email}%0A*Travel Dates:* ${formData.travelDates || "Flexible"}%0A*Group Size:* ${formData.guests}%0A*Preferred Accommodation:* ${formData.hotelCategory}%0A*Meal Plan:* ${formData.mealPlan}%0A*Special Requests:* ${formData.specialWishes || "None"}`;
 
     setTimeout(() => {

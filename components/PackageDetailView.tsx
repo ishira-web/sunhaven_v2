@@ -122,7 +122,7 @@ export default function PackageDetailView({ pkg }: PackageDetailViewProps) {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
                 type="button"
-                onClick={() => scrollToSection("custom-quote-section")}
+                onClick={() => setIsTripPlannerOpen(true)}
                 className="flex items-center gap-2 bg-[#cca45b] hover:bg-[#d9b46e] text-[#07160f] px-6 sm:px-7 py-3.5 rounded-xl text-xs sm:text-[13px] font-bold uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-[0_4px_20px_rgba(204,164,91,0.35)] cursor-pointer"
               >
                 <span>REQUEST INQUIRY</span>
@@ -476,7 +476,16 @@ export default function PackageDetailView({ pkg }: PackageDetailViewProps) {
       <WhatsAppWidget />
 
       {/* Bespoke Concierge Modal */}
-      <TripPlannerModal isOpen={isTripPlannerOpen} onClose={() => setIsTripPlannerOpen(false)} />
+      <TripPlannerModal
+        isOpen={isTripPlannerOpen}
+        onClose={() => setIsTripPlannerOpen(false)}
+        selectedPackage={{
+          id: pkg.id,
+          slug: pkg.slug,
+          title: pkg.title,
+          duration: pkg.durationNightsDays,
+        }}
+      />
     </div>
   );
 }

@@ -159,15 +159,30 @@ model Inquiry {
   phone           String
   country         String?
   travelDates     String?
+  arrivalDate     String?
+  departureDate   String?
   duration        String?
   passengers      String?
+  pax             Int?
+  adults          Int?
+  children        Int?
+  rooms           Int?
+  hotelCategory   Json?         // string[] (e.g. ["Boutique", "5-Star"])
+  mealPlan        Json?         // string[] (e.g. ["BB", "HB"])
+  budget          String?       // (e.g. "$1500 - $2500")
   interests       Json?         // string[]
+  customPlaces    Json?         // string[] (e.g. ["Sigiriya", "Ella"])
   specialRequests String?       @db.Text
 
   packageId       String?
   package         Package?      @relation(fields: [packageId], references: [id], onDelete: SetNull)
 
   status          InquiryStatus @default(PENDING)
+  quotePrice      String?       // e.g. "$2,450 USD"
+  quoteDetails    String?       @db.Text
+  replyContent    String?       @db.Text
+  repliedAt       DateTime?
+
   internalNotes   String?       @db.Text
   assignedToId    String?
   assignedTo      User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)

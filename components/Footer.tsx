@@ -11,7 +11,7 @@ interface FooterProps {
 
 export default function Footer({ onOpenTripPlanner }: FooterProps) {
   return (
-    <footer id="contact" className="bg-[#06140e] border-t border-[#cca45b]/20 pt-16 pb-12 text-slate-300">
+    <footer id="contact" className="scroll-mt-16 bg-[#06140e] border-t border-[#cca45b]/20 pt-16 pb-12 text-slate-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
           {/* Col 1: Brand */}
@@ -40,7 +40,12 @@ export default function Footer({ onOpenTripPlanner }: FooterProps) {
               </li>
               <li>
                 <Link href="/packages" className="hover:text-[#cca45b] transition-colors">
-                  All Packages (Long Day & Custom)
+                  All Tour Packages
+                </Link>
+              </li>
+              <li>
+                <Link href="/inquiry" className="hover:text-[#cca45b] transition-colors">
+                  Detailed Tour Inquiry
                 </Link>
               </li>
               <li>
@@ -85,18 +90,32 @@ export default function Footer({ onOpenTripPlanner }: FooterProps) {
             <p className="text-xs text-slate-400 mb-3">
               Speak directly with an experiential travel designer today.
             </p>
-            <button
-              onClick={onOpenTripPlanner}
-              className="w-full bg-[#cca45b] hover:bg-[#d9b46e] text-[#0a2118] py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-            >
-              Plan Your Trip
-            </button>
+            {onOpenTripPlanner ? (
+              <button
+                onClick={onOpenTripPlanner}
+                className="w-full bg-[#cca45b] hover:bg-[#d9b46e] text-[#0a2118] py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Plan Your Trip
+              </button>
+            ) : (
+              <Link
+                href="/inquiry"
+                className="block text-center w-full bg-[#cca45b] hover:bg-[#d9b46e] text-[#0a2118] py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Plan Your Trip
+              </Link>
+            )}
           </div>
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} SunHaven Lanka. All rights reserved.</p>
-          <p className="text-[#cca45b]/80">Private Journeys, Made Personal.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/admin" className="hover:text-[#cca45b] text-[11px] text-slate-500 transition-colors">
+              Admin Portal
+            </Link>
+            <p className="text-[#cca45b]/80">Private Journeys, Made Personal.</p>
+          </div>
         </div>
       </div>
     </footer>

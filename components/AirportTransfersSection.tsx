@@ -1,70 +1,73 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Radio, Clock, UserCheck, Car, ArrowRight } from "lucide-react";
 
 interface AirportTransfersSectionProps {
   onBookTransfer?: () => void;
+  onSelectVehicle?: (vehicleType: string) => void;
   onViewAllTransfers?: () => void;
 }
 
+const DEFAULT_VEHICLES = [
+  {
+    type: "CAR",
+    name: "Luxury Car / Sedan",
+    guests: "1 – 3 Guests",
+    description: "Ideal for couples or solo travelers.",
+    image: "/images/car.png",
+  },
+  {
+    type: "MINIVAN",
+    name: "Comfort Minivan",
+    guests: "4 – 6 Guests",
+    description: "Perfect for families and small groups.",
+    image: "/images/min-van.jpg",
+  },
+  {
+    type: "LUXURY VAN",
+    name: "Executive Luxury Van",
+    guests: "7 – 12 Guests",
+    description: "Spacious & comfortable for larger groups.",
+    image: "/images/luxury-van.jfif",
+  },
+];
+
 export default function AirportTransfersSection({
   onBookTransfer,
+  onSelectVehicle,
   onViewAllTransfers,
 }: AirportTransfersSectionProps) {
-  const vehicles = [
-    {
-      type: "CAR",
-      guests: "1 – 3 Guests",
-      description: "Ideal for couples or solo travelers.",
-      image: "/images/car.png",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#22c55e]">
-          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-          <circle cx="7" cy="17" r="2" />
-          <path d="M9 17h6" />
-          <circle cx="17" cy="17" r="2" />
-        </svg>
-      ),
-    },
-    {
-      type: "MINIVAN",
-      guests: "4 – 6 Guests",
-      description: "Perfect for families and small groups.",
-      image: "/images/min-van.jpg",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#22c55e]">
-          <rect x="2" y="6" width="20" height="12" rx="2" />
-          <path d="M6 18h12" />
-          <circle cx="6" cy="18" r="2" />
-          <circle cx="18" cy="18" r="2" />
-          <line x1="2" y1="12" x2="22" y2="12" />
-          <line x1="9" y1="6" x2="9" y2="12" />
-        </svg>
-      ),
-    },
-    {
-      type: "LUXURY VAN",
-      guests: "7 – 12 Guests",
-      description: "Spacious & comfortable for larger groups.",
-      image: "/images/luxury-van.jfif",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#22c55e]">
-          <path d="M4 17h16" />
-          <rect x="3" y="5" width="18" height="13" rx="2" />
-          <circle cx="7" cy="18" r="2" />
-          <circle cx="17" cy="18" r="2" />
-          <line x1="3" y1="11" x2="21" y2="11" />
-          <line x1="8" y1="5" x2="8" y2="11" />
-          <line x1="14" y1="5" x2="14" y2="11" />
-        </svg>
-      ),
-    },
-  ];
+  const [fleet, setFleet] = useState(DEFAULT_VEHICLES);
+
+  useEffect(() => {
+    fetch("/api/vehicles")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.vehicles && data.vehicles.length > 0) {
+          const dynamicFleet = data.vehicles.map((v: any) => ({
+            type: v.type,
+            name:
+              v.type === "CAR"
+                ? "Luxury Car / Sedan"
+                : v.type === "MINIVAN"
+                ? "Comfort Minivan"
+                : v.type === "LUXURY VAN"
+                ? "Executive Luxury Van"
+                : v.type,
+            guests: v.guests || "1 – 4 Guests",
+            description: v.description || "Private air-conditioned chauffeur transfer.",
+            image: v.image || "/images/car.png",
+          }));
+          setFleet(dynamicFleet);
+        }
+      })
+      .catch((err) => console.error("Failed to load airport transfers fleet:", err));
+  }, []);
 
   return (
-    <section id="transfers" className="bg-[#081e14] py-20 px-4 sm:px-6 lg:px-10 border-t border-[#cca45b]/15 text-slate-100">
+    <section id="transfers" className="scroll-mt-16 bg-[#081e14] py-20 px-4 sm:px-6 lg:px-10 border-t border-[#cca45b]/15 text-slate-100">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Heading, Description, Features & Primary CTA */}
@@ -87,12 +90,12 @@ export default function AirportTransfersSection({
 
             {/* Main Title */}
             <h2 className="font-playfair text-3xl sm:text-4xl lg:text-[44px] font-bold text-white leading-tight mb-3">
-              Airport Transfers
+              Airport Transfers & Fleet
             </h2>
 
             {/* Description */}
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md mb-8">
-              Comfortable private transfers from Bandaranaike International Airport to anywhere in Sri Lanka.
+              Comfortable private transfers from Bandaranaike International Airport (BIA) to anywhere in Sri Lanka with licensed chauffeur guides.
             </p>
 
             {/* 4 Feature Badges Grid */}
@@ -140,53 +143,64 @@ export default function AirportTransfersSection({
 
             {/* Primary Action Button */}
             <button
-              onClick={onBookTransfer}
-              className="group flex items-center gap-2 bg-[#cca45b] hover:bg-[#d9b46e] text-[#081e14] px-6 sm:px-7 py-3.5 rounded-lg text-xs sm:text-[13px] font-bold tracking-wider uppercase transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-[0_4px_16px_rgba(204,164,91,0.3)] hover:shadow-[0_6px_22px_rgba(204,164,91,0.5)] cursor-pointer"
+              onClick={() => (onSelectVehicle ? onSelectVehicle("CAR") : onBookTransfer?.())}
+              className="group flex items-center gap-2 bg-[#cca45b] hover:bg-[#d9b46e] text-[#081e14] px-6 sm:px-7 py-3.5 rounded-xl text-xs sm:text-[13px] font-bold tracking-wider uppercase transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-[0_4px_16px_rgba(204,164,91,0.3)] hover:shadow-[0_6px_22px_rgba(204,164,91,0.5)] cursor-pointer"
             >
               <span>BOOK AIRPORT TRANSFER</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </div>
 
-          {/* Right Column: 3 Vehicle Cards */}
+          {/* Right Column: Top 3 Featured Vehicle Cards */}
           <div className="lg:col-span-7 flex flex-col">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 lg:gap-6">
-              {vehicles.map((v, idx) => (
+              {fleet.slice(0, 3).map((v, idx) => (
                 <div
                   key={idx}
-                  className="bg-white text-slate-800 rounded-2xl overflow-hidden shadow-lg border border-stone-200/50 hover:shadow-2xl transition-all duration-300 flex flex-col group"
+                  onClick={() => (onSelectVehicle ? onSelectVehicle(v.type) : onBookTransfer?.())}
+                  className="bg-white text-slate-800 rounded-2xl overflow-hidden shadow-lg border border-stone-200/50 hover:shadow-2xl hover:border-[#cca45b] transition-all duration-300 flex flex-col justify-between group cursor-pointer"
                 >
-                  {/* Vehicle Image */}
-                  <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-stone-100">
-                    <Image
-                      src={v.image}
-                      alt={`${v.type} - SunHaven Lanka Airport Transfer`}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                  </div>
-
-                  {/* Overlapping Vehicle Badge Icon */}
-                  <div className="relative -mt-6 ml-5 z-10">
-                    <div className="w-11 h-11 rounded-full bg-[#082215] border-2 border-white shadow-md flex items-center justify-center">
-                      {v.icon}
+                  <div>
+                    {/* Vehicle Image */}
+                    <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-stone-100 flex items-center justify-center">
+                      <Image
+                        src={v.image}
+                        alt={`${v.type} - SunHaven Lanka Airport Transfer`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-700 ease-out"
+                        unoptimized
+                      />
                     </div>
-                  </div>
 
-                  {/* Vehicle Info */}
-                  <div className="pt-2 pb-6 px-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-bold text-[15px] uppercase tracking-wide text-[#0b1f16]">
-                        {v.type}
+                    {/* Overlapping Vehicle Badge Icon */}
+                    <div className="relative -mt-6 ml-5 z-10">
+                      <div className="w-11 h-11 rounded-full bg-[#082215] border-2 border-white shadow-md flex items-center justify-center group-hover:border-[#cca45b] transition-colors">
+                        <Car className="w-5 h-5 text-[#22c55e]" />
+                      </div>
+                    </div>
+
+                    {/* Vehicle Info */}
+                    <div className="pt-2 pb-4 px-5">
+                      <h3 className="font-bold text-[15px] uppercase tracking-wide text-[#0b1f16] group-hover:text-[#cca45b] transition-colors">
+                        {v.name}
                       </h3>
                       <p className="text-xs text-stone-500 font-medium mt-0.5 mb-2.5">
                         {v.guests}
                       </p>
-                      <p className="text-xs text-stone-600 leading-relaxed">
+                      <p className="text-xs text-stone-600 leading-relaxed line-clamp-3">
                         {v.description}
                       </p>
                     </div>
+                  </div>
+
+                  <div className="pt-2 pb-4 px-5 border-t border-stone-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#cca45b] uppercase tracking-wider group-hover:underline">
+                      Book Vehicle
+                    </span>
+                    <span className="text-stone-400 group-hover:translate-x-1 group-hover:text-[#cca45b] transition-all">
+                      →
+                    </span>
                   </div>
                 </div>
               ))}
@@ -195,10 +209,10 @@ export default function AirportTransfersSection({
             {/* Bottom Center Link */}
             <div className="flex justify-center mt-8">
               <button
-                onClick={onViewAllTransfers}
+                onClick={() => (onSelectVehicle ? onSelectVehicle("CAR") : onViewAllTransfers?.())}
                 className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold uppercase tracking-[0.16em] text-[#cca45b] hover:text-[#e0bb72] transition-colors cursor-pointer group"
               >
-                <span>VIEW ALL TRANSFER OPTIONS</span>
+                <span>BOOK CHAUFFEUR OR TRANSFER</span>
                 <span className="text-sm transition-transform duration-200 group-hover:translate-x-1">→</span>
               </button>
             </div>

@@ -83,7 +83,7 @@ export default function WhyTravelWithUsSection() {
   ];
 
   return (
-    <section id="about" className="bg-[#faf6f0] text-slate-800 border-t border-stone-200/60 overflow-hidden">
+    <section id="about" className="scroll-mt-16 bg-[#faf6f0] text-slate-800 border-t border-stone-200/60 overflow-hidden">
       {/* 1. Top Sub-Section: WHY TRAVEL WITH US */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-14 sm:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
@@ -118,7 +118,7 @@ export default function WhyTravelWithUsSection() {
       </div>
 
       {/* 2. Middle Sub-Section: 5 Horizontal Experience Photo Banners */}
-      <div className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0.5 sm:gap-1 bg-stone-200/50">
+      <div id="experiences" className="scroll-mt-24 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0.5 sm:gap-1 bg-stone-200/50">
         {experienceBanners.map((exp, idx) => (
           <div
             key={idx}
