@@ -11,7 +11,7 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
-async function verifyTokenMiddleware(token: string): Promise<JWTPayload | null> {
+async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as unknown as JWTPayload;
@@ -23,14 +23,14 @@ async function verifyTokenMiddleware(token: string): Promise<JWTPayload | null> 
 const protectedPaths = ["/admin", "/api/admin"];
 const publicPaths = ["/admin/login", "/api/admin/login", "/api/admin/logout"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // If already authenticated and trying to access /admin/login, redirect directly to /admin
   if (pathname === "/admin/login") {
     const token = request.cookies.get("sunhaven_admin_token")?.value;
     if (token) {
-      const session = await verifyTokenMiddleware(token);
+      const session = await verifyToken(token);
       if (session) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Verify token
-  const session = await verifyTokenMiddleware(token);
+  const session = await verifyToken(token);
   if (!session) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
