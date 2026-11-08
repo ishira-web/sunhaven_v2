@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken, JWTPayload } from "./lib/auth";
+import { jwtVerify } from "jose";
+import type { JWTPayload } from "./lib/auth";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production-min-32-chars"
-);
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error(
+    "JWT_SECRET environment variable is required and must be at least 32 characters long"
+  );
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 async function verifyTokenMiddleware(token: string): Promise<JWTPayload | null> {
   try {
@@ -15,13 +20,23 @@ async function verifyTokenMiddleware(token: string): Promise<JWTPayload | null> 
   }
 }
 
-import { jwtVerify } from "jose";
-
 const protectedPaths = ["/admin", "/api/admin"];
 const publicPaths = ["/admin/login", "/api/admin/login", "/api/admin/logout"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // If already authenticated and trying to access /admin/login, redirect directly to /admin
+  if (pathname === "/admin/login") {
+    const token = request.cookies.get("sunhaven_admin_token")?.value;
+    if (token) {
+      const session = await verifyTokenMiddleware(token);
+      if (session) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+    }
+    return NextResponse.next();
+  }
 
   // Check if path is protected
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));

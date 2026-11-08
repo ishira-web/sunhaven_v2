@@ -44,6 +44,11 @@ export default function Footer({ onOpenTripPlanner }: FooterProps) {
                 </Link>
               </li>
               <li>
+                <Link href="/gallery" className="hover:text-[#cca45b] transition-colors">
+                  Travel Gallery
+                </Link>
+              </li>
+              <li>
                 <Link href="/inquiry" className="hover:text-[#cca45b] transition-colors">
                   Detailed Tour Inquiry
                 </Link>
@@ -109,13 +114,15 @@ export default function Footer({ onOpenTripPlanner }: FooterProps) {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-          <p>© {new Date().getFullYear()} SunHaven Lanka. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="hover:text-[#cca45b] text-[11px] text-slate-500 transition-colors">
-              Admin Portal
-            </Link>
-            <p className="text-[#cca45b]/80">Private Journeys, Made Personal.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} SunHaven Lanka. All rights reserved.</p>
+            <span className="hidden sm:inline text-slate-600">|</span>
+            <p className="text-[11px] text-slate-500">
+              Made by{" "}
+              <span className="text-[#cca45b]/90 font-medium">Idea Tech Solutions</span>
+            </p>
           </div>
+          <p className="text-[#cca45b]/80">Private Journeys, Made Personal.</p>
         </div>
       </div>
     </footer>

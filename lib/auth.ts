@@ -2,9 +2,13 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production-min-32-chars"
-);
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error(
+    "JWT_SECRET environment variable is required and must be at least 32 characters long"
+  );
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const TOKEN_NAME = "sunhaven_admin_token";
 const TOKEN_EXPIRY = "7d";
