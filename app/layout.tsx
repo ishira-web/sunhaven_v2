@@ -30,9 +30,6 @@ export const metadata: Metadata = {
   title: "SunHaven Lanka | Private Luxury Journeys in Sri Lanka",
   description:
     "Private luxury journeys across a paradise island of timeless culture, stunning nature and unforgettable experiences.",
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default function RootLayout({
