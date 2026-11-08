@@ -37,6 +37,9 @@ jobs:
     name: Deploy to VPS
     needs: ci
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://sunhavenlanka.com
     steps:
       - name: SSH and deploy
         uses: appleboy/ssh-action@v1.2.0
