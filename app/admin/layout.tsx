@@ -15,6 +15,7 @@ import {
   X,
   ChevronDown,
   User,
+  Users,
   Search,
 } from "lucide-react";
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Vehicles", href: "/admin/vehicles", icon: Truck },
   { name: "Media", href: "/admin/media", icon: Images },
   { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Users", href: "/admin/users", icon: Users },
 ];
 
 export default function AdminLayout({
@@ -41,6 +43,12 @@ export default function AdminLayout({
     setMounted(true);
   }, []);
 
+  const isLoginPage = pathname === "/admin/login" || pathname?.startsWith("/admin/login/");
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#07160f]">
@@ -50,6 +58,15 @@ export default function AdminLayout({
       </div>
     );
   }
+
+  const handleLogout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } finally {
+      window.location.href = "/admin/login";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#07160f] text-slate-100">
@@ -133,11 +150,12 @@ export default function AdminLayout({
                 <form
                   action="/api/admin/logout"
                   method="POST"
+                  onSubmit={handleLogout}
                   className="w-full"
                 >
                   <button
                     type="submit"
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors text-left cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out

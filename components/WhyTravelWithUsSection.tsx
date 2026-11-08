@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Star } from "lucide-react";
 
 export default function WhyTravelWithUsSection() {
@@ -29,26 +30,23 @@ export default function WhyTravelWithUsSection() {
       ),
     },
     {
-      title: "Handpicked Experiences",
-      desc: "Authentic places, hidden gems and must-see highlights.",
+      title: "Handpicked Stays",
+      desc: "Boutique, heritage and luxury properties.",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8 text-[#cca45b]">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="9" y1="15" x2="15" y2="15" />
-          <line x1="9" y1="11" x2="11" y2="11" />
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       ),
     },
     {
-      title: "Travel in Comfort",
-      desc: "Modern vehicles, carefully selected accommodation.",
+      title: "Chauffeur Fleet",
+      desc: "Dedicated luxury private air-conditioned vehicles.",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-8 h-8 text-[#cca45b]">
-          <path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2" />
-          <rect x="2" y="9" width="20" height="10" rx="2" />
-          <circle cx="7" cy="14" r="2" />
-          <circle cx="17" cy="14" r="2" />
+          <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1L1 14v5a1 1 0 0 0 1 1h2" />
+          <circle cx="6.5" cy="16.5" r="2.5" />
+          <circle cx="16.5" cy="16.5" r="2.5" />
         </svg>
       ),
     },
@@ -56,27 +54,37 @@ export default function WhyTravelWithUsSection() {
 
   const experienceBanners = [
     {
+      slug: "ancient-heritage",
       title: "ANCIENT HERITAGE",
+      subtitle: "Sacred Cities & Rock Citadels",
       image: "/images/exp_ancient_heritage.jpg",
       alt: "Ancient Heritage temples and stupas in Sri Lanka",
     },
     {
+      slug: "hill-country",
       title: "HILL COUNTRY",
+      subtitle: "Tea Valleys & Scenic Rail",
       image: "/images/nine_arch_bridge_train.jpg",
       alt: "Misty hill country tea plantations and train",
     },
     {
+      slug: "wildlife-safaris",
       title: "WILDLIFE SAFARIS",
+      subtitle: "Leopards & Elephant Herds",
       image: "/images/exp_wildlife_safaris.jpg",
       alt: "Majestic elephant in Sri Lanka national park",
     },
     {
+      slug: "beach-paradise",
       title: "BEACH PARADISE",
+      subtitle: "Golden Sands & Colonial Forts",
       image: "/images/coastal_haven_galle.jpg",
       alt: "Pristine golden beach with turquoise water",
     },
     {
+      slug: "culture-people",
       title: "CULTURE & PEOPLE",
+      subtitle: "Living Arts & Island Warmth",
       image: "/images/exp_culture_people.jpg",
       alt: "Traditional Sri Lankan cultural dancer",
     },
@@ -119,10 +127,11 @@ export default function WhyTravelWithUsSection() {
 
       {/* 2. Middle Sub-Section: 5 Horizontal Experience Photo Banners */}
       <div id="experiences" className="scroll-mt-24 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0.5 sm:gap-1 bg-stone-200/50">
-        {experienceBanners.map((exp, idx) => (
-          <div
-            key={idx}
-            className="group relative h-44 sm:h-52 md:h-60 w-full overflow-hidden bg-stone-900 cursor-pointer"
+        {experienceBanners.map((exp) => (
+          <Link
+            key={exp.slug}
+            href={`/experiences/${exp.slug}`}
+            className="group relative h-44 sm:h-52 md:h-60 w-full overflow-hidden bg-stone-900 cursor-pointer block"
           >
             <Image
               src={exp.image}
@@ -132,15 +141,22 @@ export default function WhyTravelWithUsSection() {
               className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out opacity-90 group-hover:opacity-100"
             />
             {/* Bottom dark gradient for text contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent group-hover:from-black/90 transition-all duration-300" />
 
-            {/* Banner Category Title */}
-            <div className="absolute bottom-4 inset-x-0 text-center px-2 z-10">
-              <span className="font-bold text-xs sm:text-[13px] tracking-[0.15em] text-white uppercase drop-shadow-md">
+            {/* Banner Category Title & Explore Badge */}
+            <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 text-center z-10 flex flex-col items-center justify-end">
+              <span className="font-bold text-xs sm:text-[13px] tracking-[0.15em] text-white uppercase drop-shadow-md group-hover:text-[#cca45b] transition-colors">
                 {exp.title}
               </span>
+              <span className="text-[10px] text-stone-300 font-medium tracking-wide mt-0.5 hidden sm:block opacity-85 group-hover:opacity-100 transition-opacity">
+                {exp.subtitle}
+              </span>
+              <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#cca45b] opacity-0 group-hover:opacity-100 transform -translate-y-1 group-hover:translate-y-0 transition-all duration-300">
+                <span>VIEW EXPERIENCE</span>
+                <span className="text-xs">→</span>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

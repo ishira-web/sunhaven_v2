@@ -13,20 +13,23 @@ import {
   Compass,
   Clock,
   Calendar,
-  MapPin,
-  Car,
   ChevronRight,
+  Package as PackageIcon,
 } from "lucide-react";
 
 interface HeaderProps {
   onOpenTripPlanner?: () => void;
 }
 
-interface DropdownItem {
+interface DynamicHeaderPackage {
+  id: string;
+  slug: string;
   title: string;
-  desc: string;
-  href: string;
-  icon: React.ElementType;
+  durationTag: string;
+  durationNightsDays?: string;
+  subtitle?: string;
+  type?: string;
+  isFeatured?: boolean;
 }
 
 export default function Header({ onOpenTripPlanner }: HeaderProps) {
@@ -38,8 +41,31 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
   const [packagesDropdownOpen, setPackagesDropdownOpen] = useState(false);
   const [mobilePackagesExpanded, setMobilePackagesExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState("HOME");
+  const [dbPackages, setDbPackages] = useState<DynamicHeaderPackage[]>([]);
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch created packages from database
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHeaderPackages = () => {
+      fetch("/api/packages?published=true")
+        .then((res) => (res.ok ? res.json() : { packages: [] }))
+        .then((data) => {
+          if (isMounted && data.packages && Array.isArray(data.packages)) {
+            setDbPackages(data.packages);
+          }
+        })
+        .catch((err) => console.error("Header failed to load packages:", err));
+    };
+
+    fetchHeaderPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
 
   // Scroll listener for sticky header styling & section spying
   useEffect(() => {
@@ -84,58 +110,6 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
 
-  // Determine active tab based on route
-  useEffect(() => {
-    if (pathname.startsWith("/packages")) {
-      setActiveSection("PACKAGES");
-    } else if (pathname === "/inquiry") {
-      setActiveSection("INQUIRY");
-    } else if (pathname === "/") {
-      if (typeof window !== "undefined" && window.location.hash) {
-        const hash = window.location.hash.toLowerCase();
-        if (hash.includes("transfers")) setActiveSection("AIRPORT TRANSFERS");
-        else if (hash.includes("experiences")) setActiveSection("EXPERIENCES");
-        else if (hash.includes("about")) setActiveSection("ABOUT");
-        else if (hash.includes("contact")) setActiveSection("CONTACT");
-        else if (hash.includes("journeys")) setActiveSection("PACKAGES");
-        else setActiveSection("HOME");
-      }
-    }
-  }, [pathname]);
-
-  const packageSubItems: DropdownItem[] = [
-    {
-      title: "All Tour Packages",
-      desc: "Multi-day & single-day expeditions",
-      href: "/packages",
-      icon: Compass,
-    },
-    {
-      title: "10-Day Relaxed Tour",
-      desc: "Signature luxury private island circuit",
-      href: "/packages/10-days-relaxed-private-tour",
-      icon: Sparkles,
-    },
-    {
-      title: "One Day Excursions",
-      desc: "Kandy, Sigiriya, Galle & day trips",
-      href: "/packages?tab=one-day",
-      icon: Clock,
-    },
-    {
-      title: "Custom Tailor-Made",
-      desc: "100% personalized private proposal",
-      href: "/inquiry",
-      icon: Calendar,
-    },
-    {
-      title: "Signature Highlights",
-      desc: "Featured handcrafted itineraries",
-      href: "/#journeys",
-      icon: MapPin,
-    },
-  ];
-
   const navItems = [
     { name: "HOME", href: "/", isPage: true },
     {
@@ -146,6 +120,7 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
     },
     { name: "AIRPORT TRANSFERS", href: "/#transfers", isPage: false },
     { name: "EXPERIENCES", href: "/#experiences", isPage: false },
+    { name: "GALLERY", href: "/gallery", isPage: true },
     { name: "INQUIRY", href: "/inquiry", isPage: true },
     { name: "ABOUT", href: "/#about", isPage: false },
     { name: "CONTACT", href: "/#contact", isPage: false },
@@ -216,6 +191,8 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
               activeSection === item.name ||
               (item.name === "PACKAGES" && pathname.startsWith("/packages")) ||
               (item.name === "INQUIRY" && pathname === "/inquiry") ||
+              (item.name === "EXPERIENCES" && pathname.startsWith("/experiences")) ||
+              (item.name === "GALLERY" && pathname === "/gallery") ||
               (item.name === "HOME" && pathname === "/" && activeSection === "HOME");
 
             if (item.hasDropdown) {
@@ -246,40 +223,110 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
                     )}
                   </Link>
 
-                  {/* Packages Dropdown Menu */}
+                  {/* Packages Dropdown Menu with Created Packages */}
                   {packagesDropdownOpen && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-80 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                      <div className="bg-[#071911]/98 backdrop-blur-xl border border-[#cca45b]/30 shadow-[0_12px_35px_rgba(0,0,0,0.6)] rounded-2xl p-2 overflow-hidden">
-                        <div className="px-3 py-2 border-b border-[#cca45b]/15 mb-1">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-96 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="bg-[#071911]/98 backdrop-blur-xl border border-[#cca45b]/30 shadow-[0_16px_40px_rgba(0,0,0,0.7)] rounded-2xl p-2.5 overflow-hidden">
+                        {/* Header Link to All Packages */}
+                        <Link
+                          href="/packages"
+                          onClick={(e) => handleNavClick(e, "/packages", "PACKAGES")}
+                          className="group flex items-center justify-between p-2.5 rounded-xl bg-[#cca45b]/10 hover:bg-[#cca45b]/20 border border-[#cca45b]/30 transition-all mb-2"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Compass className="w-4 h-4 text-[#cca45b]" />
+                            <div>
+                              <span className="text-xs font-bold text-[#cca45b] tracking-wider uppercase block">
+                                ALL TOUR PACKAGES
+                              </span>
+                              <span className="text-[11px] text-slate-300">
+                                View complete collection & excursions
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#cca45b] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+
+                        {/* Dynamic User-Created Packages List from Database */}
+                        <div className="px-3 py-1 border-b border-[#cca45b]/15 mb-1.5 flex items-center justify-between">
                           <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#cca45b]">
-                            EXPLORE SRI LANKA
+                            CURATED TOURS ({dbPackages.length})
                           </span>
+                          <span className="text-[10px] text-slate-400">Private Journeys</span>
                         </div>
-                        <div className="space-y-0.5">
-                          {packageSubItems.map((subItem) => {
-                            const SubIcon = subItem.icon;
-                            return (
-                              <Link
-                                key={subItem.title}
-                                href={subItem.href}
-                                onClick={(e) => handleNavClick(e, subItem.href, "PACKAGES")}
-                                className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#cca45b]/10 hover:border hover:border-[#cca45b]/20 border border-transparent transition-all"
-                              >
-                                <div className="w-8 h-8 rounded-lg bg-[#0a2419] border border-[#cca45b]/30 flex items-center justify-center text-[#cca45b] shrink-0 group-hover:bg-[#cca45b] group-hover:text-[#0a2419] transition-colors">
-                                  <SubIcon className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs font-bold text-slate-100 group-hover:text-[#cca45b] transition-colors flex items-center justify-between">
-                                    <span>{subItem.title}</span>
-                                    <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#cca45b]" />
+
+                        <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+                          {dbPackages.length > 0 ? (
+                            dbPackages.map((pkg) => {
+                              const PkgIcon = pkg.isFeatured
+                                ? Sparkles
+                                : pkg.type === "ONE_DAY"
+                                ? Clock
+                                : PackageIcon;
+
+                              return (
+                                <Link
+                                  key={pkg.id}
+                                  href={`/packages/${pkg.slug}`}
+                                  onClick={(e) => handleNavClick(e, `/packages/${pkg.slug}`, "PACKAGES")}
+                                  className="group flex items-start gap-3 p-2 rounded-xl hover:bg-[#cca45b]/10 hover:border hover:border-[#cca45b]/20 border border-transparent transition-all"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-[#0a2419] border border-[#cca45b]/30 flex items-center justify-center text-[#cca45b] shrink-0 group-hover:bg-[#cca45b] group-hover:text-[#0a2419] transition-colors mt-0.5">
+                                    <PkgIcon className="w-3.5 h-3.5" />
                                   </div>
-                                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                                    {subItem.desc}
-                                  </p>
-                                </div>
-                              </Link>
-                            );
-                          })}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className="text-xs font-bold text-slate-100 group-hover:text-[#cca45b] transition-colors truncate">
+                                        {pkg.title}
+                                      </span>
+                                      {pkg.durationTag && (
+                                        <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-[#0a2419] border border-[#cca45b]/30 text-[#cca45b] rounded shrink-0">
+                                          {pkg.durationTag}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                                      {pkg.durationNightsDays || pkg.subtitle || "Private Sri Lanka Tour"}
+                                    </p>
+                                  </div>
+                                </Link>
+                              );
+                            })
+                          ) : (
+                            <Link
+                              href="/packages/10-days-relaxed-private-tour"
+                              onClick={(e) => handleNavClick(e, "/packages/10-days-relaxed-private-tour", "PACKAGES")}
+                              className="group flex items-center gap-3 p-2 rounded-xl hover:bg-[#cca45b]/10 transition-all text-xs text-slate-300"
+                            >
+                              <Sparkles className="w-4 h-4 text-[#cca45b]" />
+                              <span>10-Day Relaxed Tour</span>
+                            </Link>
+                          )}
+                        </div>
+
+                        {/* Bottom Quick Links (Custom & Excursions) */}
+                        <div className="pt-2 border-t border-white/10 mt-2 grid grid-cols-2 gap-1.5">
+                          <Link
+                            href="/packages?tab=one-day"
+                            onClick={(e) => handleNavClick(e, "/packages?tab=one-day", "PACKAGES")}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-[#cca45b]/15 text-left transition-colors"
+                          >
+                            <span className="text-[11px] font-bold text-slate-200 block">
+                              Day Excursions
+                            </span>
+                            <span className="text-[10px] text-slate-400">Single-day trips</span>
+                          </Link>
+
+                          <Link
+                            href="/inquiry"
+                            onClick={(e) => handleNavClick(e, "/inquiry", "INQUIRY")}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-[#cca45b]/15 text-left transition-colors"
+                          >
+                            <span className="text-[11px] font-bold text-[#cca45b] block">
+                              Custom Tour
+                            </span>
+                            <span className="text-[10px] text-slate-400">Tailor-made proposal</span>
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -344,6 +391,8 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
                 activeSection === item.name ||
                 (item.name === "PACKAGES" && pathname.startsWith("/packages")) ||
                 (item.name === "INQUIRY" && pathname === "/inquiry") ||
+                (item.name === "EXPERIENCES" && pathname.startsWith("/experiences")) ||
+                (item.name === "GALLERY" && pathname === "/gallery") ||
                 (item.name === "HOME" && pathname === "/" && activeSection === "HOME");
 
               if (item.hasDropdown) {
@@ -374,23 +423,51 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
                       </button>
                     </div>
 
-                    {/* Expandable Mobile Submenu */}
+                    {/* Expandable Mobile Submenu with Dynamic Created Packages */}
                     {mobilePackagesExpanded && (
-                      <div className="pl-4 pb-2 pt-1 space-y-2">
-                        {packageSubItems.map((sub) => {
-                          const SubIcon = sub.icon;
-                          return (
-                            <Link
-                              key={sub.title}
-                              href={sub.href}
-                              onClick={(e) => handleNavClick(e, sub.href, "PACKAGES")}
-                              className="flex items-center gap-2.5 py-1.5 text-xs text-slate-300 hover:text-[#cca45b]"
-                            >
-                              <SubIcon className="w-3.5 h-3.5 text-[#cca45b]" />
-                              <span>{sub.title}</span>
-                            </Link>
-                          );
-                        })}
+                      <div className="pl-4 pb-2 pt-1 space-y-2 border-l border-[#cca45b]/20 ml-2">
+                        <Link
+                          href="/packages"
+                          onClick={(e) => handleNavClick(e, "/packages", "PACKAGES")}
+                          className="flex items-center gap-2 py-1 text-xs font-bold text-[#cca45b]"
+                        >
+                          <Compass className="w-3.5 h-3.5 text-[#cca45b]" />
+                          <span>All Tour Packages</span>
+                        </Link>
+
+                        {dbPackages.map((pkg) => (
+                          <Link
+                            key={pkg.id}
+                            href={`/packages/${pkg.slug}`}
+                            onClick={(e) => handleNavClick(e, `/packages/${pkg.slug}`, "PACKAGES")}
+                            className="flex items-center justify-between py-1 text-xs text-slate-300 hover:text-[#cca45b]"
+                          >
+                            <span className="truncate">{pkg.title}</span>
+                            {pkg.durationTag && (
+                              <span className="text-[9px] uppercase px-1.5 py-0.5 bg-[#0a2419] border border-[#cca45b]/30 text-[#cca45b] rounded ml-2 shrink-0">
+                                {pkg.durationTag}
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+
+                        <Link
+                          href="/packages?tab=one-day"
+                          onClick={(e) => handleNavClick(e, "/packages?tab=one-day", "PACKAGES")}
+                          className="flex items-center gap-2 py-1 text-xs text-slate-400 hover:text-[#cca45b]"
+                        >
+                          <Clock className="w-3 h-3 text-[#cca45b]" />
+                          <span>One Day Excursions</span>
+                        </Link>
+
+                        <Link
+                          href="/inquiry"
+                          onClick={(e) => handleNavClick(e, "/inquiry", "INQUIRY")}
+                          className="flex items-center gap-2 py-1 text-xs text-slate-400 hover:text-[#cca45b]"
+                        >
+                          <Calendar className="w-3 h-3 text-[#cca45b]" />
+                          <span>Custom Tailor-Made Tour</span>
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -418,7 +495,7 @@ export default function Header({ onOpenTripPlanner }: HeaderProps) {
             <div className="pt-4 pb-2">
               <button
                 onClick={handlePlanYourTrip}
-                className="w-full flex items-center justify-center gap-2 bg-[#cca45b] hover:bg-[#d9b46e] text-[#0d2218] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-lg"
+                className="w-full flex items-center justify-center gap-2 bg-[#cca45b] hover:bg-[#d9b46e] text-[#0d2218] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-lg cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 text-[#0d2218] stroke-[2.4]" />
                 <span>PLAN YOUR TRIP</span>

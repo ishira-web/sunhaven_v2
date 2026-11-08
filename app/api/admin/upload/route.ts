@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    await requireRole(["SUPER_ADMIN", "ADMIN"]);
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
+    const formData = await req.formData();
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    const extensionByType: Record<string, string> = {
+      "image/jpeg": ".jpg",
+      "image/png": ".png",
+      "image/webp": ".webp",
+    };
+    const extension = extensionByType[file.type];
+    if (!extension) {
       return NextResponse.json(
         { error: "Invalid file type. Only JPEG, PNG, and WebP are allowed." },
         { status: 400 }
@@ -34,15 +44,21 @@ export async function POST(req: NextRequest) {
     const targetDir = path.join(process.cwd(), "public", cleanFolder);
     await mkdir(targetDir, { recursive: true });
 
-    const ext = path.extname(file.name) || ".jpg";
-    const prefix = req.nextUrl.searchParams.get("prefix") || (cleanFolder.includes("vehicle") ? "vehicle" : "upload");
-    const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
+    const prefixParam = req.nextUrl.searchParams.get("prefix") || (cleanFolder.includes("vehicle") ? "vehicle" : "upload");
+    const prefix = prefixParam.replace(/[^a-zA-Z0-9_-]/g, "") || "upload";
+    const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${extension}`;
     const filePath = path.join(targetDir, filename);
 
     await writeFile(filePath, buffer);
     return NextResponse.json({ url: `/${cleanFolder}/${filename}` });
   } catch (error) {
     console.error("Upload error:", error);
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (error instanceof Error && error.message === "Forbidden") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
