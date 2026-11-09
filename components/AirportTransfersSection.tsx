@@ -46,7 +46,12 @@ export default function AirportTransfersSection({
       .then((res) => res.json())
       .then((data) => {
         if (data.vehicles && data.vehicles.length > 0) {
-          const dynamicFleet = data.vehicles.map((v: any) => ({
+          const dynamicFleet = data.vehicles.map((v: {
+            type: string;
+            guests?: string;
+            description?: string;
+            image?: string;
+          }) => ({
             type: v.type,
             name:
               v.type === "CAR"

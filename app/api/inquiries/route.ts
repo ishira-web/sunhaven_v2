@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Try standard Prisma client create
-      const inquiry = await (prisma.inquiry as any).create({
+      const inquiry = await prisma.inquiry.create({
         data: {
           type: inquiryType,
           name: String(name).trim(),
@@ -101,8 +101,9 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json({ success: true, inquiry });
-    } catch (createErr: any) {
-      console.warn("Direct raw SQL insert fallback:", createErr?.message);
+    } catch (createErr) {
+      const errMsg = createErr instanceof Error ? createErr.message : String(createErr);
+      console.warn("Direct raw SQL insert fallback:", errMsg);
 
       // Direct MySQL insert fallback if in-memory client has not yet reloaded schema
       await prisma.$executeRaw`
@@ -154,14 +155,15 @@ export async function POST(request: NextRequest) {
         },
       });
     }
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as { message?: string; code?: string; meta?: unknown };
     console.error("Inquiry creation error:", {
-      message: error?.message,
-      code: error?.code,
-      meta: error?.meta,
+      message: err?.message,
+      code: err?.code,
+      meta: err?.meta,
     });
     return NextResponse.json(
-      { error: error?.message || "Failed to submit inquiry" },
+      { error: err?.message || "Failed to submit inquiry" },
       { status: 500 }
     );
   }

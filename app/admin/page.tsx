@@ -41,10 +41,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
   const fetchStats = async () => {
     try {
       const res = await fetch("/api/admin/dashboard/stats");
@@ -58,6 +54,10 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    Promise.resolve().then(fetchStats);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {

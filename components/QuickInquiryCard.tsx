@@ -105,9 +105,9 @@ export default function QuickInquiryCard({
 
       setSubmitted(true);
       if (onSuccess) onSuccess();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Quick inquiry submission error:", err);
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }

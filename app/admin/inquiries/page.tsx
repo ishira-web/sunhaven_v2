@@ -124,7 +124,6 @@ export default function InquiriesPage() {
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const fetchInquiries = async () => {
-    setLoading(true);
     try {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
@@ -148,7 +147,7 @@ export default function InquiriesPage() {
   };
 
   useEffect(() => {
-    fetchInquiries();
+    Promise.resolve().then(fetchInquiries);
 
     // Fetch packages for quote dropdown
     fetch("/api/packages?published=true")
@@ -161,38 +160,32 @@ export default function InquiriesPage() {
       .catch(() => {});
   }, [pagination.page, search, statusFilter, typeFilter]);
 
-  // Sync quotation form when an inquiry is selected
-  useEffect(() => {
-    if (selectedInquiry) {
-      setQuotePrice(selectedInquiry.quotePrice || selectedInquiry.budget || "$2,450 USD");
-      setQuotePlaces(
-        selectedInquiry.customPlaces && Array.isArray(selectedInquiry.customPlaces)
-          ? [...selectedInquiry.customPlaces]
-          : ["Sigiriya", "Kandy", "Ella", "Galle"]
-      );
-      setQuoteHotelCat(
-        selectedInquiry.hotelCategory && Array.isArray(selectedInquiry.hotelCategory)
-          ? [...selectedInquiry.hotelCategory]
-          : ["5-Star", "Boutique"]
-      );
-      setQuoteMealPlan(
-        selectedInquiry.mealPlan && Array.isArray(selectedInquiry.mealPlan)
-          ? [...selectedInquiry.mealPlan]
-          : ["HB"]
-      );
-      setQuotePackageId(selectedInquiry.packageId || "");
-      setEmailSubject(
-        `Your Private Sri Lanka Tour Proposal & Quote - SunHaven Lanka`
-      );
+  const selectInquiry = (inquiry: Inquiry, tab: "overview" | "quote_reply") => {
+    setSelectedInquiry(inquiry);
+    setActiveTab(tab);
+    setShowDetails(true);
 
-      // Pre-fill template
-      const datesStr =
-        selectedInquiry.arrivalDate && selectedInquiry.departureDate
-          ? `${selectedInquiry.arrivalDate} to ${selectedInquiry.departureDate}`
-          : selectedInquiry.travelDates || "Upcoming Travel Dates";
+    setQuotePrice(inquiry.quotePrice || inquiry.budget || "$2,450 USD");
+    setQuotePlaces(
+      inquiry.customPlaces && Array.isArray(inquiry.customPlaces)
+        ? [...inquiry.customPlaces]
+        : ["Sigiriya", "Kandy", "Ella", "Galle"]
+    );
+    setQuoteHotelCat(
+      inquiry.hotelCategory && Array.isArray(inquiry.hotelCategory)
+        ? [...inquiry.hotelCategory]
+        : ["5-Star", "Boutique"]
+    );
+    setQuoteMealPlan(
+      inquiry.mealPlan && Array.isArray(inquiry.mealPlan)
+        ? [...inquiry.mealPlan]
+        : ["HB"]
+    );
+    setQuotePackageId(inquiry.packageId || "");
+    setEmailSubject(`Your Private Sri Lanka Tour Proposal & Quote - SunHaven Lanka`);
 
-      const defaultMsg =
-`Dear ${selectedInquiry.name},
+    const defaultMsg =
+`Dear ${inquiry.name},
 
 Warm greetings from SunHaven Lanka Tours!
 
@@ -210,11 +203,10 @@ Please review the quote and let us know if you would like to adjust any stops or
 Warm regards,
 SunHaven Lanka Concierge Team`;
 
-      setEmailMessage(selectedInquiry.replyContent || defaultMsg);
-      setQuoteSuccess(null);
-      setQuoteError(null);
-    }
-  }, [selectedInquiry]);
+    setEmailMessage(inquiry.replyContent || defaultMsg);
+    setQuoteSuccess(null);
+    setQuoteError(null);
+  };
 
   const handleNotesChange = async (inquiryId: string, notes: string) => {
     try {
@@ -266,8 +258,8 @@ SunHaven Lanka Concierge Team`;
         setSelectedInquiry(data.inquiry);
       }
       fetchInquiries();
-    } catch (err: any) {
-      setQuoteError(err.message || "Could not dispatch quotation email.");
+    } catch (err) {
+      setQuoteError(err instanceof Error ? err.message : "Could not dispatch quotation email.");
     } finally {
       setSendingQuote(false);
     }
@@ -670,22 +662,14 @@ SunHaven Lanka Team`);
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => {
-                              setSelectedInquiry(inquiry);
-                              setActiveTab("quote_reply");
-                              setShowDetails(true);
-                            }}
+                            onClick={() => selectInquiry(inquiry, "quote_reply")}
                             className="px-3 py-1.5 bg-[#cca45b] text-[#07160f] font-bold text-xs rounded-lg hover:bg-[#e0b86c] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                           >
                             <Mail className="w-3.5 h-3.5" />
                             <span>Reply & Quote</span>
                           </button>
                           <button
-                            onClick={() => {
-                              setSelectedInquiry(inquiry);
-                              setActiveTab("overview");
-                              setShowDetails(true);
-                            }}
+                            onClick={() => selectInquiry(inquiry, "overview")}
                             className="px-3 py-1.5 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-xs hover:bg-white/10 hover:text-white transition-colors font-medium cursor-pointer"
                           >
                             Details

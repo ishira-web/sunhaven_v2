@@ -142,35 +142,39 @@ export default function TripPlannerModal({
   const pkgTitle = selectedPackage?.title;
   const placesKey = initialPlaces ? initialPlaces.join(",") : "";
 
-  // Sync package or initial places if props change or modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setFormData((prev) => {
-        const nextPackageId = pkgId || prev.packageId;
-        const nextPackageTitle = pkgTitle || prev.packageTitle || "100% Custom Tailor-Made Tour";
-        const incomingPlaces = initialPlaces || [];
-        const nextPlaces =
-          incomingPlaces.length > 0
-            ? Array.from(new Set([...prev.customPlaces, ...incomingPlaces]))
-            : prev.customPlaces;
+  // Adjust state when inbound props change — React 19 pattern.
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [syncKey, setSyncKey] = useState<string | null>(null);
+  const currentSyncKey = isOpen ? `${pkgId ?? ""}|${pkgTitle ?? ""}|${placesKey}` : null;
+  if (isOpen && currentSyncKey !== syncKey) {
+    setSyncKey(currentSyncKey);
+    setFormData((prev) => {
+      const nextPackageId = pkgId || prev.packageId;
+      const nextPackageTitle = pkgTitle || prev.packageTitle || "100% Custom Tailor-Made Tour";
+      const incomingPlaces = initialPlaces || [];
+      const nextPlaces =
+        incomingPlaces.length > 0
+          ? Array.from(new Set([...prev.customPlaces, ...incomingPlaces]))
+          : prev.customPlaces;
 
-        if (
-          prev.packageId === nextPackageId &&
-          prev.packageTitle === nextPackageTitle &&
-          prev.customPlaces.length === nextPlaces.length
-        ) {
-          return prev;
-        }
+      if (
+        prev.packageId === nextPackageId &&
+        prev.packageTitle === nextPackageTitle &&
+        prev.customPlaces.length === nextPlaces.length
+      ) {
+        return prev;
+      }
 
-        return {
-          ...prev,
-          packageId: nextPackageId,
-          packageTitle: nextPackageTitle,
-          customPlaces: nextPlaces,
-        };
-      });
-    }
-  }, [isOpen, pkgId, pkgTitle, placesKey]);
+      return {
+        ...prev,
+        packageId: nextPackageId,
+        packageTitle: nextPackageTitle,
+        customPlaces: nextPlaces,
+      };
+    });
+  } else if (!isOpen && syncKey !== null) {
+    setSyncKey(null);
+  }
 
   // Modal ESC key and body scroll lock
   useEffect(() => {

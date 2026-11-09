@@ -80,25 +80,32 @@ function InquiryFormContent() {
   const packageParam = searchParams.get("package") || "";
   const placesParam = searchParams.get("places") || "";
 
-  const [formData, setFormData] = useState({
-    name: "",
-    country: "",
-    email: "",
-    phone: "",
-    arrivalDate: "",
-    departureDate: "",
-    pax: 2,
-    adults: 2,
-    children: 0,
-    rooms: 1,
-    hotelCategory: ["5-Star", "Boutique"] as string[],
-    mealPlan: ["HB"] as string[],
-    interests: ["Culture and Heritage", "Nature", "Wildlife"] as string[],
-    budget: "$1,500 - $2,500",
-    packageId: "",
-    packageTitle: "",
-    customPlaces: [] as string[],
-    otherRequirements: "",
+  const [formData, setFormData] = useState(() => {
+    const initialPlaces = placesParam
+      ? Array.from(
+          new Set(placesParam.split(",").map((p) => p.trim()).filter(Boolean))
+        )
+      : [];
+    return {
+      name: "",
+      country: "",
+      email: "",
+      phone: "",
+      arrivalDate: "",
+      departureDate: "",
+      pax: 2,
+      adults: 2,
+      children: 0,
+      rooms: 1,
+      hotelCategory: ["5-Star", "Boutique"] as string[],
+      mealPlan: ["HB"] as string[],
+      interests: ["Culture and Heritage", "Nature", "Wildlife"] as string[],
+      budget: "$1,500 - $2,500",
+      packageId: "",
+      packageTitle: "",
+      customPlaces: initialPlaces,
+      otherRequirements: "",
+    };
   });
 
   const [availablePackages, setAvailablePackages] = useState<{ id: string; title: string; slug: string }[]>([]);
@@ -108,18 +115,6 @@ function InquiryFormContent() {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Parse URL places
-    if (placesParam) {
-      const placesList = placesParam.split(",").map((p) => p.trim()).filter(Boolean);
-      if (placesList.length > 0) {
-        setFormData((prev) => ({
-          ...prev,
-          customPlaces: Array.from(new Set([...prev.customPlaces, ...placesList])),
-        }));
-      }
-    }
-
-    // Fetch packages
     fetch("/api/packages?published=true")
       .then((res) => (res.ok ? res.json() : { packages: [] }))
       .then((data) => {
@@ -143,7 +138,7 @@ function InquiryFormContent() {
         }
       })
       .catch(() => {});
-  }, [packageParam, placesParam]);
+  }, [packageParam]);
 
   const toggleHotelCategory = (cat: string) => {
     setFormData((prev) => ({

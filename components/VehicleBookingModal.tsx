@@ -122,7 +122,16 @@ export default function VehicleBookingModal({
         if (res.ok) {
           const data = await res.json();
           if (data.vehicles && data.vehicles.length > 0 && isMounted) {
-            const mapped: VehicleOption[] = data.vehicles.map((v: any) => ({
+            const mapped: VehicleOption[] = data.vehicles.map((v: {
+              id?: string;
+              type: string;
+              guests?: string;
+              luggageCapacity?: string;
+              image?: string;
+              description?: string;
+              ratePerKm?: number;
+              basePrice?: number;
+            }) => ({
               id: v.id || v.type,
               type: v.type,
               name:
@@ -251,9 +260,9 @@ Notes/Add-ons: ${specialRequests.trim() || "None"}`,
       }
 
       setSubmitted(true);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Vehicle inquiry submission error:", err);
-      setError(err.message || "Failed to submit vehicle transfer inquiry.");
+      setError(err instanceof Error ? err.message : "Failed to submit vehicle transfer inquiry.");
     } finally {
       setSubmitting(false);
     }

@@ -112,7 +112,7 @@ export default function VehiclesAdminPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [vehicleInquiries, setVehicleInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [inquiriesLoading, setInquiriesLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -142,7 +142,6 @@ export default function VehiclesAdminPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchVehicles = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/admin/vehicles?limit=50");
       if (res.ok) {
@@ -173,7 +172,6 @@ export default function VehiclesAdminPage() {
   };
 
   const fetchVehicleInquiries = async () => {
-    setInquiriesLoading(true);
     try {
       const res = await fetch("/api/admin/inquiries?type=AIRPORT_TRANSFER&limit=50");
       if (res.ok) {
@@ -188,8 +186,10 @@ export default function VehiclesAdminPage() {
   };
 
   useEffect(() => {
-    fetchVehicles();
-    fetchVehicleInquiries();
+    Promise.resolve().then(() => {
+      fetchVehicles();
+      fetchVehicleInquiries();
+    });
   }, []);
 
   const handleOpenCreate = () => {
@@ -338,8 +338,8 @@ export default function VehiclesAdminPage() {
 
       setIsModalOpen(false);
       fetchVehicles();
-    } catch (err: any) {
-      setFormError(err.message || "Failed to save vehicle details");
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Failed to save vehicle details");
     } finally {
       setSaving(false);
     }

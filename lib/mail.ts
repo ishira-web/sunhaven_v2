@@ -221,9 +221,9 @@ ${messageContent}
 
       console.log(`[Email Dispatched] Message ID: ${info.messageId} to ${toEmail}`);
       return { success: true, messageId: info.messageId };
-    } catch (err: any) {
+    } catch (err) {
       console.error("[Email Error] Failed to send via SMTP:", err);
-      return { success: false, error: err.message };
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
 

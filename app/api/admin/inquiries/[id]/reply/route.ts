@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const now = new Date();
 
     try {
-      const updated = await (prisma.inquiry as any).update({
+      const updated = await prisma.inquiry.update({
         where: { id },
         data: {
           status: "QUOTED",
@@ -156,10 +156,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         emailResult,
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Admin inquiry email reply error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to send email quotation" },
+      { error: error instanceof Error ? error.message : "Failed to send email quotation" },
       { status: 500 }
     );
   }

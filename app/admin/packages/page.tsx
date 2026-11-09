@@ -44,7 +44,6 @@ export default function PackagesPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchPackages = async () => {
-    setLoading(true);
     try {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
@@ -68,7 +67,7 @@ export default function PackagesPage() {
   };
 
   useEffect(() => {
-    fetchPackages();
+    Promise.resolve().then(fetchPackages);
   }, [pagination.page, search, typeFilter, statusFilter]);
 
   const handleDelete = async (id: string) => {
